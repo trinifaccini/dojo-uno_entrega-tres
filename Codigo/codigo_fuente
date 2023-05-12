@@ -173,7 +173,6 @@ void loop()
   apagarLed(PIN_LEDS_VERDE_1);
   apagarLed(PIN_LEDS_ROJO_2); 
   
-  
   // #############################
   
   Serial.print("SEM 1: Encender luces rojas x ");   
