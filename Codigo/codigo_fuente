@@ -1,0 +1,230 @@
+/* DOJO UNO */
+
+/*
+13-  Agregar un botón (pull down) 
+que al presionarlo se active la funcionalidad de luz verde 
+con más tiempo, dándole a la persona que lo necesite más tiempo 
+para cruzar la calle , sirve para la próxima luz verde y solo 
+para la próxima luz verde después de presionar el botón. 
+el tiempo se duplicará. 
+
+14-  Colocar dos semáforos de calles que se crucen  y programarlos 
+para que funcionen en conjunto.
+
+*/
+
+#define PIN_LEDS_ROJO_1 11
+#define PIN_LEDS_ROJO_2 8
+
+#define PIN_LEDS_AMARILLO_1 12
+#define PIN_LEDS_AMARILLO_2 9
+
+#define PIN_LEDS_VERDE_1 13
+#define PIN_LEDS_VERDE_2 10
+#define PIN_BUZZER 2
+#define PULSADOR 3
+
+int tiempo_buzzer_rojo;
+int tiempo_buzzer_amarillo;
+
+int intensidad_fuerte;
+int intensidad_suave;
+
+int loop_led_rojo;
+int loop_led_amarillo;
+
+int tiempo_luz_verde; 
+
+bool alargue; 
+
+void setup()
+{
+  pinMode(PIN_LEDS_ROJO_1, OUTPUT);   
+  pinMode(PIN_LEDS_AMARILLO_1, OUTPUT);  
+  pinMode(PIN_LEDS_VERDE_1, OUTPUT);
+  
+  pinMode(PIN_LEDS_ROJO_2, OUTPUT);   
+  pinMode(PIN_LEDS_AMARILLO_2, OUTPUT);  
+  pinMode(PIN_LEDS_VERDE_2, OUTPUT);  
+  
+  pinMode(PIN_BUZZER, OUTPUT);
+  pinMode(PULSADOR, INPUT); //PULLDOWN
+  
+  intensidad_fuerte = 220;  
+  intensidad_suave = 100;
+  tiempo_buzzer_rojo = 1000/4; //2 veces x segundo 
+  tiempo_buzzer_amarillo = 1000/2; // 1 vez x segundo
+  loop_led_rojo = 5*2;  // veces totales que suena el buzzer en la luz roja (10)
+  loop_led_amarillo = 3*1;  // veces totales que suena el buzzer en la luz amarilla
+    
+  tiempo_luz_verde = 5000;
+  
+  Serial.begin(9600); 
+}
+
+void sonarBuzzer(int pin, int tiempo, int intensidad)
+{
+  Serial.println("Suena buzzer");
+  tone(pin, intensidad);
+  delay(tiempo);
+}
+
+void silenciarBuzzer(int pin, int tiempo)
+{
+  Serial.println("Se silencia el buzzer");
+  noTone(pin);
+  delay(tiempo);
+}
+
+void sonarSilenciarBuzzer(int buzzer, int tiempo, int intensidad, int veces)
+{
+  int contador = 0;
+  
+  while (contador < veces)
+  {
+    sonarBuzzer(buzzer, tiempo, intensidad);
+    silenciarBuzzer(buzzer, tiempo);
+    contador = contador + 1;
+  }
+}
+
+
+void prenderLed(int led)
+{
+  digitalWrite(led, HIGH);  
+}
+
+void apagarLed(int led)
+{
+  digitalWrite(led, LOW);  
+}
+
+
+void titilar_leds(int pin_1, int pin_2, int veces)
+{
+
+  int contador = 0;
+  
+  apagarLed(pin_1);    
+  apagarLed(pin_2);
+  delay(200);
+  
+  while (contador < veces)
+  {
+    prenderLed(pin_1);
+    prenderLed(pin_2);
+    delay(300);
+    apagarLed(pin_1);    
+    apagarLed(pin_2);
+    delay(300);
+    contador = contador + 1;
+  }
+  
+}
+
+
+void loop()
+{ 
+  
+  if(alargue == true){
+    alargue = false;
+  }
+
+  Serial.print("SEM 1: Encender luces verdes x ");   
+  Serial.print(tiempo_luz_verde/1000);
+  Serial.println(" segundos");
+  Serial.print("SEM 2: Encender luces rojas x ");  
+  Serial.print(tiempo_luz_verde/1000);
+  Serial.println(" segundos");
+ 
+  prenderLed(PIN_LEDS_VERDE_1);
+  prenderLed(PIN_LEDS_ROJO_2);
+
+  delay(tiempo_luz_verde);
+  
+  Serial.println("SEM 1: Pasando a amarillo - Titilan luces verdes 3 veces");  
+  Serial.println("SEM 2: Pasando a amarillo - Titilan luces rojas 3 veces");
+  
+  titilar_leds(PIN_LEDS_VERDE_1,PIN_LEDS_ROJO_2, 3);  
+  
+  Serial.println("SEM 1: Apagar luces verdes");  
+  Serial.println("SEM 2: Apagar luces rojas");
+
+  apagarLed(PIN_LEDS_VERDE_1);
+  apagarLed(PIN_LEDS_ROJO_2); 
+  
+  // ###########################
+
+  Serial.println("SEM 1: Encender luces amarillas x 3 segundos");  
+  Serial.println("SEM 1: Encender luces amarillas x 3 segundos");   
+
+  prenderLed(PIN_LEDS_AMARILLO_1);
+  prenderLed(PIN_LEDS_AMARILLO_2);
+
+  delay(3000);
+  
+  Serial.println("SEM 1: Pasando a rojo - Titilan luces verdes 3 veces");  
+  Serial.println("SEM 2: Pasando a verde - Titilan luces rojas 3 veces");
+  titilar_leds(PIN_LEDS_AMARILLO_1,PIN_LEDS_AMARILLO_2, 3);  
+  
+  Serial.println("SEM 1: Apagar luces amarillas");  
+  Serial.println("SEM 2: Apagar luces amarillas");
+
+  apagarLed(PIN_LEDS_VERDE_1);
+  apagarLed(PIN_LEDS_ROJO_2); 
+  
+  
+  // #############################
+  
+  Serial.print("SEM 1: Encender luces rojas x ");   
+  Serial.print(tiempo_luz_verde/1000);
+  Serial.println(" segundos");
+  Serial.print("SEM 2: Encender luces verdes x ");  
+  Serial.print(tiempo_luz_verde/1000);
+  Serial.println(" segundos");
+ 
+  prenderLed(PIN_LEDS_VERDE_2);
+  prenderLed(PIN_LEDS_ROJO_1);
+
+  delay(tiempo_luz_verde);
+  
+  Serial.println("SEM 1: Pasando a amarillo - Titilan luces rojas 3 veces");  
+  Serial.println("SEM 2: Pasando a amarillo - Titilan luces verdes 3 veces");
+  
+  titilar_leds(PIN_LEDS_VERDE_2,PIN_LEDS_ROJO_1, 3);  
+  
+  Serial.println("SEM 1: Apagar luces rojas");  
+  Serial.println("SEM 2: Apagar luces verdes");
+
+  apagarLed(PIN_LEDS_VERDE_2);
+  apagarLed(PIN_LEDS_ROJO_1); 
+  
+  // ############################# 
+  
+  Serial.println("SEM 1: Encender luces amarillas x 3 segundos");  
+  Serial.println("SEM 1: Encender luces amarillas x 3 segundos");   
+
+  prenderLed(PIN_LEDS_AMARILLO_1);
+  prenderLed(PIN_LEDS_AMARILLO_2);
+
+  delay(3000);
+  
+  Serial.println("SEM 1: Pasando a verde - Titilan luces rojas 3 veces");  
+  Serial.println("SEM 2: Pasando a rojo - Titilan luces verdes 3 veces");
+  titilar_leds(PIN_LEDS_AMARILLO_1,PIN_LEDS_AMARILLO_2, 3);  
+  
+  Serial.println("SEM 1: Apagar luces amarillas");  
+  Serial.println("SEM 2: Apagar luces amarillas");
+  
+  tiempo_luz_verde = 5000;
+    
+  int puls = digitalRead(PULSADOR);
+  Serial.print("PULSADOR: ");
+  Serial.println(puls);
+    
+  if(puls == LOW) {
+    alargue = true;
+    tiempo_luz_verde = 10000;
+  }
+
+}
